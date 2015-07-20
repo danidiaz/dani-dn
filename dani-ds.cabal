@@ -31,6 +31,7 @@ library
 
     exposed-modules:
         Data.Dani.Types 
+        Data.Dani.Parser
     exposed: True
     buildable: True
     other-modules:
