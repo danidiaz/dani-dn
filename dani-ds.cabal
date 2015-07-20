@@ -1,0 +1,36 @@
+name:          dani-ds
+version:       0.1.0.0
+license:       AllRightsReserved
+license-file:  LICENSE
+data-files:    
+author:        Daniel Diaz Carrete
+maintainer:    diaz_carrete@yahoo.com
+category:      Data
+build-type:    Simple
+cabal-version: >= 1.10
+-- Synopsis:      
+-- Description:   
+
+Extra-Source-Files:
+    README.md
+    CHANGELOG
+    LICENSE
+
+library
+    hs-source-dirs: library
+    default-language: Haskell2010
+    ghc-options: -Wall
+    build-depends:
+        base >= 4.8 && < 5,
+        transformers >= 0.4.3.0,
+        attoparsec >= 0.13,
+        comonad >= 4.2.2,
+        free >= 4.10,
+        text >= 1.2.1
+
+    exposed-modules:
+        Data.Dani.Types 
+    exposed: True
+    buildable: True
+    other-modules:
+    ghc-options: -Wall
