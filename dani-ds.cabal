@@ -23,10 +23,11 @@ library
     build-depends:
         base >= 4.8 && < 5,
         transformers >= 0.4.3.0,
-        attoparsec >= 0.13,
         comonad >= 4.2.2,
         free >= 4.10,
-        text >= 1.2.1
+        text >= 1.2.1,
+        attoparsec >= 0.13,
+        scientific >= 0.3.3.8
 
     exposed-modules:
         Data.Dani.Types 
