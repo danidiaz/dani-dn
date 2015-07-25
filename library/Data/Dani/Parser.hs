@@ -5,21 +5,31 @@ module Data.Dani.Parser (
 import qualified Data.Attoparsec.Text as P
 import qualified Data.Text as T
 import Data.Char
+import Control.Applicative
+import Control.Comonad.Env
+import Control.Comonad.Trans.Cofree
 
 import Data.Dani.Types
 
-symbolParser :: P.Parser Symbol  
+elementParser :: P.Parser Dn
+elementParser = liftA (CofreeT . env [] . (:<) ()) $
+    liftA Symbol symbolParser <|> 
+    liftA String stringParser <|> 
+    liftA Number P.scientific <|> 
+    liftA List listParser
+
+symbolParser :: P.Parser Symbol
 symbolParser = symbol <$> P.takeWhile1 isAlpha  
 
 stringParser :: P.Parser T.Text
-stringParser = P.char '"' *> P.takeWhile1 (\c -> not (c=='"'))  <* P.char '"' 
+stringParser = 
+    P.char '"' *> P.takeWhile1 (\c -> not (c=='"'))  <* P.char '"' 
 
 skipSpaceAndComma :: P.Parser ()
 skipSpaceAndComma = P.skipWhile (\c -> isSpace c || c==',')
 
-elementParser :: P.Parser Dn
-elementParser = undefined
+listParser :: P.Parser [Dn]
+listParser = P.char '(' *> undefined  
 
-listParser :: P.Parser [Dn] 
-listParser = P.char '(' *> undefined 
+
 
