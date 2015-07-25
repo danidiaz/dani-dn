@@ -11,8 +11,11 @@ import Control.Comonad.Trans.Cofree
 
 import Data.Dani.Types
 
+parser :: P.Parser Dn
+parser = P.skipSpace *> elementParser
+
 elementParser :: P.Parser Dn
-elementParser = liftA (CofreeT . env [] . (:<) ()) $
+elementParser = liftA (CofreeT . env [] . (:<) ()) $ 
     liftA Symbol symbolParser <|> 
     liftA String stringParser <|> 
     liftA Number P.scientific <|> 
@@ -29,7 +32,7 @@ skipSpaceAndComma :: P.Parser ()
 skipSpaceAndComma = P.skipWhile (\c -> isSpace c || c==',')
 
 listParser :: P.Parser [Dn]
-listParser = P.char '(' *> undefined  
-
-
+listParser = P.char '(' *> P.skipSpace *> P.manyTill elementParser' (P.char ')')
+  where
+    elementParser' = elementParser <* skipSpaceAndComma
 
