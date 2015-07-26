@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Data.Dani.Parser (
         module Data.Dani
     ) where
@@ -12,9 +14,56 @@ import Control.Comonad.Trans.Cofree
 
 import Data.Dani
 
+-- . * + ! - _ ? $ % & = < >
+
+isFirst :: Char -> Bool
+isFirst c = 
+    (isAlpha c) ||
+    (c == '*') || 
+    (c == '!') || 
+    (c == '_') || 
+    (c == '?') || 
+    (c == '$') || 
+    (c == '%') || 
+    (c == '&') || 
+    (c == '=') || 
+    (c == '<') || 
+    (c == '>') 
+
+isSpecialFirst :: Char -> Bool
+isSpecialFirst c = 
+    (c == '.') || 
+    (c == '+') || 
+    (c == '-')
+
+isSpecial :: Char -> Bool
+isSpecial c = 
+    (c == '.') || 
+    (c == '*') || 
+    (c == '+') || 
+    (c == '!') || 
+    (c == '-') || 
+    (c == '_') || 
+    (c == '?') || 
+    (c == '$') || 
+    (c == '%') || 
+    (c == '&') || 
+    (c == '=') || 
+    (c == '<') || 
+    (c == '>') 
+
+isMiddle :: Char -> Bool
+isMiddle c = isAlphaNum c || isSpecial c
+
+isSpecialMiddle :: Char -> Bool
+isSpecialMiddle c = isAlpha c || isSpecial c
 
 symbolParser :: P.Parser Symbol
-symbolParser = symbol <$> P.takeWhile1 isAlpha  
+symbolParser = liftA symbol $ 
+    liftA2 T.cons (P.satisfy isFirst) (P.takeWhile isMiddle) <|>
+    liftA3 (\c1 c2 t -> T.cons c1 (T.cons c2 t)) (P.satisfy isSpecialFirst) (P.satisfy isSpecialMiddle) (P.takeWhile isMiddle) <|>
+    -- TODO allow single-char "is special first" elements 
+    (P.char '/' *> pure "/")
 
 stringParser :: P.Parser T.Text
 stringParser = 
