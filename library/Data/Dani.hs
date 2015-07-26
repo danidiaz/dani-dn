@@ -1,6 +1,6 @@
 module Data.Dani 
     ( 
-        module Data.Dani.Type
+        module Data.Dani.Types
     ) where 
 
-import Data.Dani.Type
+import Data.Dani.Types
