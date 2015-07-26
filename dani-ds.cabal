@@ -33,6 +33,8 @@ library
         Data.Dani
         Data.Dani.Types 
         Data.Dani.Parser
+        Data.Dani.Encode
+        Data.Dani.Prelude
     exposed: True
     buildable: True
     other-modules:
