@@ -62,7 +62,7 @@ symbolParser :: P.Parser Symbol
 symbolParser = liftA symbol $ 
     liftA2 T.cons (P.satisfy isFirst) (P.takeWhile isMiddle) <|>
     liftA3 (\c1 c2 t -> T.cons c1 (T.cons c2 t)) (P.satisfy isSpecialFirst) (P.satisfy isSpecialMiddle) (P.takeWhile isMiddle) <|>
-    -- TODO allow single-char "is special first" elements 
+    liftA T.singleton (P.satisfy isSpecialFirst) <|>
     (P.char '/' *> pure "/")
 
 stringParser :: P.Parser T.Text
@@ -79,9 +79,9 @@ parser_ = P.skipSpace *> elementParser_
 
 elementParser_ :: P.Parser Dn_
 elementParser_ = liftA (CofreeT . Identity . (:<) ()) $ 
-    liftA Symbol symbolParser <|> 
+    liftA Number P.scientific <|> -- Number should go before Symbol
     liftA String stringParser <|> 
-    liftA Number P.scientific <|> 
+    liftA Symbol symbolParser <|> 
     liftA List listParser_
 
 listParser_ :: P.Parser [Dn_]
