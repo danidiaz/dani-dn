@@ -6,4 +6,7 @@ module Data.Dani.Encode (
 
 
 import Data.Dani
+import qualified Data.Text.Lazy.Builder as T
 
+encodeToTextBuilder :: Dn -> T.Builder
+encodeToTextBuilder = undefined
