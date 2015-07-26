@@ -7,6 +7,7 @@ module Data.Dani.Parser (
 import qualified Data.Attoparsec.Text as P
 import qualified Data.Text as T
 import Data.Char
+import Data.Monoid
 import Data.Functor.Identity
 import Control.Applicative
 import Control.Comonad.Env
@@ -65,7 +66,16 @@ symbolParser = liftA symbol $
 
 stringParser :: P.Parser T.Text
 stringParser = 
-    P.char '"' *> P.takeWhile1 (\c -> not (c=='"'))  <* P.char '"' 
+    -- likely inefficient, think a better way
+    P.char '"' *> liftA mconcat (many chunk) <* P.char '"' 
+  where
+    chunk = 
+        P.takeWhile1 (\c -> c /= '"' && c /= '\\') <|>
+        (P.string "\\\\" *> pure "\\") <|>
+        (P.string "\\\"" *> pure "\"") <|>
+        (P.string "\\n" *> pure "\n") <|>
+        (P.string "\\r" *> pure "\r") <|>
+        (P.string "\\t" *> pure "\t")
 
 skipSpaceAndComma :: P.Parser ()
 skipSpaceAndComma = P.skipWhile (\c -> isSpace c || c==',')
