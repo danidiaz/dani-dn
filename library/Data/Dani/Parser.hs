@@ -14,8 +14,6 @@ import Control.Comonad.Trans.Cofree
 
 import Data.Dani
 
--- . * + ! - _ ? $ % & = < >
-
 isFirst :: Char -> Bool
 isFirst c = 
     (isAlpha c) ||
@@ -79,8 +77,8 @@ parser_ = P.skipSpace *> elementParser_
 
 elementParser_ :: P.Parser Dn_
 elementParser_ = liftA (CofreeT . Identity . (:<) ()) $ 
-    liftA Number P.scientific <|> -- Number should go before Symbol
     liftA String stringParser <|> 
+    liftA Number P.scientific <|> -- Number should go before Symbol
     liftA Symbol symbolParser <|> 
     liftA List listParser_
 
