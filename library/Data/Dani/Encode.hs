@@ -8,7 +8,8 @@ module Data.Dani.Encode (
 
 import Data.Dani
 import Data.Monoid
-import Data.List.NonEmpty
+import Data.Foldable
+import qualified Data.List.NonEmpty as S
 import Data.Text.Lazy.Builder.Scientific
 import qualified Data.Text.Lazy.Builder as T
 import Control.Comonad.Trans.Cofree
@@ -32,4 +33,18 @@ encodeToTextBuilder_ :: Value_ -> T.Builder
 encodeToTextBuilder_ v_ = case unwrap v_ of 
     String s -> T.fromText s
     Number n -> scientificBuilder n 
-    List vs -> lparen  <> _ <> rparen  
+    List [] -> lparen <> rparen
+    List [x] -> lparen <> encodeToTextBuilder_ x <> rparen
+    List l@(x:y:zs) -> 
+        let (pairs,lastz) = undefined 
+        in
+        fold $ 
+            [
+              lparen 
+            , foldMap ((`mappend` space) . encodeToTextBuilder_ . fst) pairs
+            , encodeToTextBuilder_ lastz 
+            , rparen  
+            ]
+
+
+
