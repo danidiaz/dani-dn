@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveFunctor #-}
 
 module Data.Dani.Types (
-        Symbol
+        Symbol(asText)
     ,   symbol
     ,   ValueF(..)
     ,   Value
@@ -14,7 +14,7 @@ import Data.String
 import Control.Comonad.Trans.Cofree
 import Control.Comonad.Env
 
-newtype Symbol = MakeSymbol T.Text deriving (Show, Eq)
+newtype Symbol = MakeSymbol { asText :: T.Text } deriving (Show, Eq) 
 
 instance IsString Symbol where
     fromString = MakeSymbol . T.pack
