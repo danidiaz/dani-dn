@@ -8,6 +8,7 @@ module Data.Dani.Encode (
 
 import Data.Dani
 import Data.Monoid
+import Data.List.NonEmpty
 import Data.Text.Lazy.Builder.Scientific
 import qualified Data.Text.Lazy.Builder as T
 import Control.Comonad.Trans.Cofree
