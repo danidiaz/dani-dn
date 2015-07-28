@@ -3,9 +3,9 @@
 module Data.Dani.Types (
         Symbol
     ,   symbol
-    ,   DnF(..)
-    ,   Dn
-    ,   Dn_
+    ,   ValueF(..)
+    ,   Value
+    ,   Value_
     ) where
 
 import qualified Data.Text as T
@@ -22,15 +22,15 @@ instance IsString Symbol where
 symbol :: T.Text -> Symbol 
 symbol = MakeSymbol
 
-data DnF a = Symbol Symbol
+data ValueF a = Symbol Symbol
            | String T.Text 
            | Number N.Scientific
            | List [a]
            deriving (Show,Eq,Functor)
 
-instance IsString (DnF a) where
+instance IsString (ValueF a) where
     fromString = String . T.pack
 
-type Dn = CofreeT DnF (Env [Dn_]) ()
+type Value = CofreeT ValueF (Env [Value_]) ()
 
-type Dn_ = Cofree DnF ()
+type Value_ = Cofree ValueF ()
