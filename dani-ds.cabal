@@ -25,7 +25,7 @@ library
         transformers >= 0.4.3.0,
         comonad >= 4.2.2,
         free >= 4.10,
-        text >= 1.2.1,
+        text >= 1.2.1.2,
         attoparsec >= 0.13,
         scientific >= 0.3.3.8 
 --        semigroups >= 0.16.2
