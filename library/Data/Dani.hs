@@ -19,9 +19,9 @@ import Control.Comonad.Env
 import Control.Comonad.Hoist.Class
 
 value :: a 
-      -> [Cofree ValueF b] 
-      -> ValueF (CofreeT ValueF (Env [Cofree ValueF b]) a)
-      -> CofreeT ValueF (Env [Cofree ValueF b]) a
+      -> e 
+      -> ValueF (CofreeT ValueF (Env e) a)
+      -> CofreeT ValueF (Env e) a
 value a e = CofreeT . env e . (:<) a
 
 value_ :: a -> ValueF (Cofree ValueF a) -> Cofree ValueF a
