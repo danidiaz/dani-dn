@@ -9,37 +9,62 @@ module Data.Dani.Encode (
 
 import Data.Dani
 import Data.Monoid
-import Data.Foldable
 import Data.List
 import Data.Text.Lazy.Builder.Scientific
-import qualified Data.Text.Lazy.Builder as T
+import qualified Data.Text as T
+import qualified Data.Text.Lazy.Builder as B
 import Control.Comonad.Trans.Cofree
+import Control.Comonad.Env
 
-space :: T.Builder
-space = T.singleton ' '
+space :: B.Builder
+space = B.singleton ' '
 
-meta :: T.Builder
-meta = T.singleton '^'
+meta :: B.Builder
+meta = B.singleton '^'
 
-quotes :: T.Builder
-quotes = T.singleton '"'
+quotes :: B.Builder
+quotes = B.singleton '"'
 
-lparen :: T.Builder  
-lparen = T.singleton '('
+lparen :: B.Builder  
+lparen = B.singleton '('
 
-rparen :: T.Builder  
-rparen = T.singleton '('
+rparen :: B.Builder  
+rparen = B.singleton '('
 
-encodeToTextBuilder :: Value -> T.Builder
-encodeToTextBuilder = undefined
+encodeToTextBuilder :: Value -> B.Builder
+encodeToTextBuilder v =   
+    metaBuilder v <> space <> encodeToTextBuilder_ (dropMeta v) 
+    where
+        metaBuilder = 
+              mconcat
+            . intersperse space 
+            . map (\z -> meta <> encodeToTextBuilder_ z) 
+            . ask . lower
 
-encodeToTextBuilder_ :: Value_ -> T.Builder
+encodeToTextBuilder_ :: Value_ -> B.Builder
 encodeToTextBuilder_ v_ = case unwrap v_ of 
-    Symbol y -> T.fromText . asText $ y 
-    -- TODO this is wrong! escape this correctly!
-    String s -> quotes <> T.fromText s <> quotes
+    Symbol y -> B.fromText . asText $ y 
+    String s -> quotes <> escapeText escapeFunc s <> quotes
     Number n -> scientificBuilder n 
     List vs ->  
-        let builders = intersperse space . map encodeToTextBuilder_ $ vs
-        in lparen <> fold builders <> rparen
+        let builder = 
+                  mconcat 
+                . intersperse space 
+                . map encodeToTextBuilder_ 
+        in lparen <> builder vs <> rparen
 
+escapeFunc :: Char -> Bool
+escapeFunc c = c == '\\' || c == '\"'
+
+escapeText :: (Char -> Bool) -> T.Text -> B.Builder
+escapeText ef = go mempty
+    where
+    go acc txt = 
+        let (prefix, T.uncons -> msuffix) = T.break ef txt
+            acc' = acc <> B.fromText prefix
+        in
+        case msuffix of
+            Nothing -> acc'
+            Just (c', suffix) -> 
+                go (acc' <> escapeChar c') suffix
+    escapeChar z = B.singleton '\\' <> B.singleton z 
