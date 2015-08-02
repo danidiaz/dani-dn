@@ -6,6 +6,7 @@ module Data.Dani
     ,   value_
     ,   dropMeta
     ,   allowMeta
+    ,   getMeta
     ) where 
 
 import Data.Dani.Types
@@ -26,6 +27,9 @@ value a e = CofreeT . env e . (:<) a
 
 value_ :: a -> ValueF (Cofree ValueF a) -> Cofree ValueF a
 value_ a = cofree . (:<) a
+
+getMeta :: ComonadTrans t => t (Env e) x -> e
+getMeta = ask . lower
 
 dropMeta :: Comonad w => CofreeT ValueF w a -> Cofree ValueF a 
 dropMeta = cohoist (Identity . extract) 
