@@ -44,7 +44,7 @@ encodeToTextBuilder v =
 encodeToTextBuilder_ :: Value_ -> B.Builder
 encodeToTextBuilder_ v_ = case unwrap v_ of 
     Symbol y -> B.fromText . asText $ y 
-    String s -> quotes <> escapeText escapeFunc s <> quotes
+    String s -> quotes <> escapeText '\\' escapeFunc s <> quotes
     Number n -> scientificBuilder n 
     List vs ->  
         let builder = 
@@ -56,8 +56,8 @@ encodeToTextBuilder_ v_ = case unwrap v_ of
 escapeFunc :: Char -> Bool
 escapeFunc c = c == '\\' || c == '\"'
 
-escapeText :: (Char -> Bool) -> T.Text -> B.Builder
-escapeText ef = go mempty
+escapeText :: Char -> (Char -> Bool) -> T.Text -> B.Builder
+escapeText c ef = go mempty
     where
     go acc txt = 
         let (prefix, T.uncons -> msuffix) = T.break ef txt
@@ -67,4 +67,4 @@ escapeText ef = go mempty
             Nothing -> acc'
             Just (c', suffix) -> 
                 go (acc' <> escapeChar c') suffix
-    escapeChar z = B.singleton '\\' <> B.singleton z 
+    escapeChar z = B.singleton c <> B.singleton z 
