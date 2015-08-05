@@ -2,6 +2,8 @@
 
 module Data.Dani.Parser (
         module Data.Dani
+    ,   elementParser
+    ,   elementParser_
     ) where
 
 import qualified Data.Attoparsec.Text as P

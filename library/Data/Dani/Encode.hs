@@ -19,8 +19,8 @@ import Control.Comonad.Env
 space :: B.Builder
 space = B.singleton ' '
 
-meta :: B.Builder
-meta = B.singleton '^'
+caret :: B.Builder
+caret = B.singleton '^'
 
 quotes :: B.Builder
 quotes = B.singleton '"'
@@ -33,12 +33,12 @@ rparen = B.singleton '('
 
 encodeToTextBuilder :: Value -> B.Builder
 encodeToTextBuilder v =   
-    metaBuilder v <> space <> encodeToTextBuilder_ (dropMeta v) 
+    caretBuilder v <> space <> encodeToTextBuilder_ (dropMeta v) 
     where
-        metaBuilder = 
+        caretBuilder = 
               mconcat
             . intersperse space 
-            . map (\z -> meta <> encodeToTextBuilder_ z) 
+            . map (\z -> caret <> encodeToTextBuilder_ z) 
             . ask . lower
 
 encodeToTextBuilder_ :: Value_ -> B.Builder
