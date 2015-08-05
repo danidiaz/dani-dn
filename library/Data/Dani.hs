@@ -2,15 +2,19 @@
 module Data.Dani 
     ( 
         module Data.Dani.Types
-    ,   value
-    ,   value_
     ,   dropMeta
     ,   allowMeta
     ,   getMeta
+    ,   wrap0    
+    ,   wrap
+    ,   wrap_  
+    ,   unwrap
+    ,   cohoist
     ) where 
 
 import Data.Dani.Types
 
+import Data.Monoid
 #if !(MIN_VERSION_free(4,12,2))
 import Data.Bifunctor
 #endif
@@ -19,14 +23,19 @@ import Control.Comonad.Trans.Cofree
 import Control.Comonad.Env
 import Control.Comonad.Hoist.Class
 
-value :: a 
-      -> e 
-      -> ValueF (CofreeT ValueF (Env e) a)
-      -> CofreeT ValueF (Env e) a
-value a e = CofreeT . env e . (:<) a
+wrap0 :: (Monoid a, Applicative w) 
+      => ValueF (CofreeT ValueF w a)
+      -> CofreeT ValueF w a
+wrap0 v = CofreeT $ pure $ mempty :< v
 
-value_ :: a -> ValueF (Cofree ValueF a) -> Cofree ValueF a
-value_ a = cofree . (:<) a
+wrap :: a 
+         -> e 
+         -> ValueF (CofreeT ValueF (Env e) a)
+         -> CofreeT ValueF (Env e) a
+wrap a e = CofreeT . env e . (:<) a
+
+wrap_ :: a -> ValueF (Cofree ValueF a) -> Cofree ValueF a
+wrap_ a = cofree . (:<) a
 
 getMeta :: ComonadTrans t => t (Env e) x -> e
 getMeta = ask . lower
