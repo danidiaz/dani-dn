@@ -8,8 +8,8 @@ module Data.Dani
     ,   wrap0    
     ,   wrap
     ,   wrap_  
-    ,   _headF
-    ,   _tailF
+    ,   _a
+    ,   _v
     ,   unwrap
     ,   cohoist
     ) where 
@@ -48,13 +48,13 @@ dropMeta = cohoist (Identity . extract)
 allowMeta :: Monoid m => Cofree ValueF a -> CofreeT ValueF (Env m) a
 allowMeta = cohoist (env mempty . runIdentity) 
 
-_headF :: (Traversable w, Applicative f) => (a -> f a) -> CofreeT g w a -> f (CofreeT g w a)
-_headF f (CofreeT w) = CofreeT <$> traverse (\(a :< as) -> (:< as) <$> f a) w
+_a :: (Traversable w, Applicative f) => (a -> f a) -> CofreeT g w a -> f (CofreeT g w a)
+_a f (CofreeT w) = CofreeT <$> traverse (\(a :< as) -> (:< as) <$> f a) w
 
-_tailF :: (Traversable w, Applicative f) 
-       => (g (CofreeT g w a) -> f (g (CofreeT g w a))) 
-       -> CofreeT g w a -> f (CofreeT g w a)
-_tailF f (CofreeT w) = CofreeT <$> traverse (\(a :< as) -> (:<) a <$> f as)  w
+_v :: (Traversable w, Applicative f) 
+   => (g (CofreeT g w a) -> f (g (CofreeT g w a))) 
+   -> CofreeT g w a -> f (CofreeT g w a)
+_v f (CofreeT w) = CofreeT <$> traverse (\(a :< as) -> (:<) a <$> f as)  w
 
 #if !(MIN_VERSION_free(4,12,2))
 instance Functor f => ComonadHoist (CofreeT f) where
