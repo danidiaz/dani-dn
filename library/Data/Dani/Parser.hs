@@ -88,7 +88,7 @@ parser_ :: P.Parser Value_
 parser_ = P.skipSpace *> elementParser_
 
 elementParser_ :: P.Parser Value_
-elementParser_ = liftA (CofreeT . Identity . (:<) ()) $ 
+elementParser_ = liftA (CofreeT . EnvT () . Identity . (:<) ()) $ 
     liftA String stringParser <|> 
     liftA Number P.scientific <|> -- Number should go before Symbol
     liftA Symbol symbolParser <|> 

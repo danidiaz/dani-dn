@@ -1,7 +1,10 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE PatternSynonyms #-}
 module Data.Dani 
     ( 
         module Data.Dani.Types
+    ,   Value
+    ,   Value_
     ,   dropMeta
     ,   allowMeta
     ,   _meta
@@ -10,6 +13,7 @@ module Data.Dani
     ,   wrap_  
     ,   _a
     ,   _v
+    ,   extract
     ,   unwrap
     ,   cohoist
     ) where 
@@ -24,6 +28,11 @@ import Data.Functor.Identity
 import Control.Comonad.Trans.Cofree
 import Control.Comonad.Env
 import Control.Comonad.Hoist.Class
+
+type Value = CofreeT ValueF (Env [Value_]) ()
+type Value_ = CofreeT ValueF (Env ()) ()
+
+pattern Value m a d = CofreeT (EnvT m (Identity (a :< d)))
 
 wrap0 :: (Monoid a, Applicative w) 
       => ValueF (CofreeT ValueF w a)
@@ -42,11 +51,11 @@ wrap_ a = cofree . (:<) a
 _meta :: Functor f => (e -> f e) -> CofreeT g (Env e) a -> f (CofreeT g (Env e) a)
 _meta f (CofreeT (EnvT e x)) = CofreeT . flip EnvT x <$> f e
 
-dropMeta :: Comonad w => CofreeT ValueF w a -> Cofree ValueF a 
-dropMeta = cohoist (Identity . extract) 
+dropMeta :: Comonad w => CofreeT ValueF w a -> CofreeT ValueF (Env ()) a 
+dropMeta = cohoist (EnvT () . Identity . extract) 
 
-allowMeta :: Monoid m => Cofree ValueF a -> CofreeT ValueF (Env m) a
-allowMeta = cohoist (env mempty . runIdentity) 
+allowMeta :: (Comonad w, Monoid m) => CofreeT ValueF w a -> CofreeT ValueF (Env m) a
+allowMeta = cohoist (env mempty . extract) 
 
 _a :: (Traversable w, Applicative f) => (a -> f a) -> CofreeT g w a -> f (CofreeT g w a)
 _a f (CofreeT w) = CofreeT <$> traverse (\(a :< as) -> (:< as) <$> f a) w

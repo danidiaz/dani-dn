@@ -4,8 +4,6 @@ module Data.Dani.Types (
         Symbol(asText)
     ,   symbol
     ,   ValueF(..)
-    ,   Value
-    ,   Value_
     ) where
 
 import qualified Data.Text as T
@@ -31,6 +29,3 @@ data ValueF a = Symbol Symbol
 instance IsString (ValueF a) where
     fromString = String . T.pack
 
-type Value = CofreeT ValueF (Env [Value_]) ()
-
-type Value_ = Cofree ValueF ()
