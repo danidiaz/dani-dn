@@ -179,4 +179,5 @@ under k = withIso k $ \ sa bt ts -> sa . ts . bt
 
 -------
 -- TODO: universeOf, paraOf, transformOf
+-- TODO: mapped, folded
 
