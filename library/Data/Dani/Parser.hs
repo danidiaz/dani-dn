@@ -84,45 +84,45 @@ skipSpaceAndComma = P.skipWhile (\c -> isSpace c || c==',')
 
 -------------------------------------------------------------------------------
 
-parser_ :: P.Parser Value_
+parser_ :: P.Parser (Value_ ())
 parser_ = P.skipSpace *> elementParser_
 
-elementParser_ :: P.Parser Value_
+elementParser_ :: P.Parser (Value_ ())
 elementParser_ = liftA (CofreeT . EnvT () . Identity . (:<) ()) $ 
     liftA String stringParser <|> 
     liftA Number P.scientific <|> -- Number should go before Symbol
     liftA Symbol symbolParser <|> 
     liftA List listParser_
 
-listParser_ :: P.Parser [Value_]
+listParser_ :: P.Parser [Value_ ()]
 listParser_ = P.char '(' *> P.skipSpace *> P.manyTill elementParser_' (P.char ')')
   where
     elementParser_' = elementParser_ <* skipSpaceAndComma
 
 -------------------------------------------------------------------------------
 
-parser :: P.Parser Value
+parser :: P.Parser (Value [Value_ ()] ())
 parser = P.skipSpace *> elementParser
 
-metadataListParser :: P.Parser [Value_]
+metadataListParser :: P.Parser [Value_ ()]
 metadataListParser = many metadata 
   where
     metadata = P.char '^' *> parser_ <* P.skipSpace 
 
-elemenWithMetadataParser :: P.Parser Value
+elemenWithMetadataParser :: P.Parser (Value [Value_ ()] ()) 
 elemenWithMetadataParser = liftA2 
     (\metas -> CofreeT . env metas . extract . runCofreeT) 
     metadataListParser 
     elementParser
 
-elementParser :: P.Parser Value
-elementParser = liftA (CofreeT . env [] . (:<) ()) $ 
+elementParser :: P.Parser (Value [Value_ ()] ()) 
+elementParser = liftA (Value () []) $ 
     liftA Symbol symbolParser <|> 
     liftA String stringParser <|> 
     liftA Number P.scientific <|> 
     liftA List listParser
 
-listParser :: P.Parser [Value]
+listParser :: P.Parser [Value [Value_ ()] ()]
 listParser = P.char '(' *> P.skipSpace *> P.manyTill elementWithMetadataParser' (P.char ')')
   where
     elementWithMetadataParser' = elemenWithMetadataParser <* skipSpaceAndComma
