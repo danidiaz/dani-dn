@@ -1,11 +1,5 @@
-{-# LANGUAGE GADTs #-}
 {-# LANGUAGE Rank2Types #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE KindSignatures #-}
-{-# LANGUAGE PolyKinds #-}
 
 module Control.Lens.Meso where
 
@@ -179,5 +173,16 @@ under k = withIso k $ \ sa bt ts -> sa . ts . bt
 
 -------
 -- TODO: universeOf, paraOf, transformOf
--- TODO: mapped, folded
 
+universeOf :: Getting [a] a a -> a -> [a]
+universeOf l = go where
+  go a = a : foldMapOf l go a
+
+paraOf :: Getting (Endo [a]) a a -> (a -> [r] -> r) -> a -> r
+paraOf l f = go where
+  go a = f a (go <$> toListOf l a)
+
+transformOf :: Traversal' a a -> (a -> a) -> a -> a
+transformOf l f = go where
+  go = f . over l go
+{-# INLINE transformOf #-}
