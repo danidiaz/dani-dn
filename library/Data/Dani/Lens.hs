@@ -1,7 +1,7 @@
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Control.Lens.Meso (
+module Data.Dani.Lens (
         Lens
     ,   Lens'
     ,   Traversal
@@ -94,9 +94,6 @@ over l f = runIdentity . l (Identity . f)
 --- Prism internals
 
 data Market a b s t = Market (b -> t) (s -> Either t a)
-
--- | @type 'Market'' a s t = 'Market' a a s t@
-type Market' a = Market a a
 
 instance Functor (Market a b s) where
   fmap f (Market bt seta) = Market (f . bt) (either (Left . f) Right . seta)

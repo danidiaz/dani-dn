@@ -30,7 +30,8 @@ library
         scientific >= 0.3.3.8,
         profunctors >= 5.1.1,
         tagged >= 0.8.1,
-        contravariant < 2
+        contravariant < 2,
+        void >= 0.7
 --        semigroups >= 0.16.2
 
     exposed-modules:
@@ -39,7 +40,7 @@ library
         Data.Dani.Parser
         Data.Dani.Encode
         Data.Dani.Prelude
-        Control.Lens.Meso
+        Data.Dani.Lens
     exposed: True
     buildable: True
     other-modules:

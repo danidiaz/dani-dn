@@ -31,7 +31,7 @@ lparen = B.singleton '('
 rparen :: B.Builder  
 rparen = B.singleton '('
 
-encodeToTextBuilder :: Value [Value_ ()] () -> B.Builder
+encodeToTextBuilder :: Value [Value () ()] () -> B.Builder
 encodeToTextBuilder v =   
     caretBuilder v <> space <> encodeToTextBuilder_ (dropMeta v) 
     where
@@ -41,7 +41,7 @@ encodeToTextBuilder v =
             . map (\z -> caret <> encodeToTextBuilder_ z) 
             . ask . lower
 
-encodeToTextBuilder_ :: Value_ () -> B.Builder
+encodeToTextBuilder_ :: Value () () -> B.Builder
 encodeToTextBuilder_ v_ = case unwrap v_ of 
     Symbol y -> B.fromText . asText $ y 
     String s -> quotes <> escapeText '\\' escapeFunc s <> quotes

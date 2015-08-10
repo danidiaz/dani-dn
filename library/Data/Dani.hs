@@ -7,15 +7,15 @@ module Data.Dani
     ( 
         module Data.Dani.Types
     ,   Value
-    ,   Value_
     ,   pattern Value
     ,   dropMeta
     ,   allowMeta
     ,   _meta
     ,   _anno
     ,   _data
+    ,   _data'
+    ,   _plate
     ,   ask
-    ,   asks
     ,   extract
     ,   unwrap
     ,   cohoist
@@ -33,13 +33,13 @@ import Control.Comonad.Env
 import Control.Comonad.Env.Class
 import Control.Comonad.Hoist.Class
 
-type Value m a = CofreeT ValueF (Env m) a
+import Data.Dani.Lens
 
-type Value_ a = CofreeT ValueF (Env ()) a
+type Value m a = CofreeT ValueF (Env m) a
 
 pattern Value a m d = CofreeT (EnvT m (Identity (a :< d)))
 
-_meta :: Functor f => (e -> f e) -> CofreeT g (Env e) a -> f (CofreeT g (Env e) a)
+_meta :: Lens' (CofreeT g (Env e) a) e
 _meta f (CofreeT (EnvT e x)) = CofreeT . flip EnvT x <$> f e
 
 dropMeta :: Comonad w => CofreeT ValueF w a -> CofreeT ValueF (Env ()) a 
@@ -48,13 +48,17 @@ dropMeta = cohoist (EnvT () . Identity . extract)
 allowMeta :: (Comonad w, Monoid m) => CofreeT ValueF w a -> CofreeT ValueF (Env m) a
 allowMeta = cohoist (env mempty . extract) 
 
-_anno :: (Traversable w, Applicative f) => (a -> f a) -> CofreeT g w a -> f (CofreeT g w a)
-_anno f (CofreeT w) = CofreeT <$> traverse (\(a :< as) -> (:< as) <$> f a) w
+_anno :: Lens' (CofreeT g (Env e) a) a
+_anno f (CofreeT (EnvT e (Identity (a :< as)))) = CofreeT . EnvT e . Identity <$> (:< as) <$> f a
 
-_data :: (Traversable w, Applicative f) 
-      => (g (CofreeT g w a) -> f (g (CofreeT g w a))) 
-      -> CofreeT g w a -> f (CofreeT g w a)
-_data f (CofreeT w) = CofreeT <$> traverse (\(a :< as) -> (:<) a <$> f as)  w
+_data :: Lens' (CofreeT g (Env e) a) (g (CofreeT g (Env e) a))
+_data f (CofreeT (EnvT e (Identity (a :< as)))) = CofreeT . EnvT e . Identity <$> (:<) a <$> f as
+
+_data' :: Functor g => Iso' (CofreeT g (Env ()) ()) (g (CofreeT g (Env ()) ()))
+_data' = iso unwrap (Value () ()) 
+
+_plate :: (Traversable f, Traversable w) => Traversal' (CofreeT f w a) (CofreeT f w a)
+_plate f (CofreeT xs) = CofreeT <$> traverse (traverse f) xs
 
 #if !(MIN_VERSION_free(4,12,2))
 instance Functor f => ComonadHoist (CofreeT f) where
