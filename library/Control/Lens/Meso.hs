@@ -1,7 +1,33 @@
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Control.Lens.Meso where
+module Control.Lens.Meso (
+        Lens
+    ,   Lens'
+    ,   Traversal
+    ,   Traversal'
+    ,   Prism
+    ,   Prism'
+    ,   Iso
+    ,   Iso'
+    ,   to
+    ,   view
+    ,   preview
+    ,   toListOf 
+    ,   foldrOf 
+    ,   foldMapOf 
+    ,   over
+    ,   re
+    ,   prism
+    ,   prism'
+    ,   below
+    ,   iso
+    ,   from
+    ,   mapping
+    ,   universeOf
+    ,   paraOf
+    ,   transformOf
+    ) where
 
 import Data.Functor.Identity
 import Data.Profunctor
@@ -22,27 +48,15 @@ type Iso s t a b = forall p f. (Profunctor p, Functor f) => p a (f b) -> p s (f 
 
 type Iso' s a = Iso s s a a
 
-type AReview t b = Optic' Tagged Identity t b
+type AReview t b = Tagged b (Identity b) -> Tagged t (Identity t)
 
 type Prism s t a b = forall p f. (Choice p, Applicative f) => p a (f b) -> p s (f t)
 
 type Prism' s a = Prism s s a a
 
-type Optic p f s t a b = p a (f b) -> p s (f t)
-
-type Optic' p f s a = Optic p f s s a a
-
-type Optical p q f s t a b = p a (f b) -> q s (f t)
-
-type Optical' p q f s a = Optical p q f s s a a
-
 type LensLike f s t a b = (a -> f b) -> s -> f t
 
 type LensLike' f s a = LensLike f s s a a
-
-type Over p f s t a b = p a (f b) -> s -> f t
-
-type Over' p f s a = Over p f s s a a
 
 ----------
 --- Getter
@@ -51,7 +65,7 @@ type Getting r s a = (a -> Const r a) -> s -> Const r s
 
 type Accessing p m s a = p a (Const m a) -> s -> Const m s
 
-to :: (Profunctor p, Contravariant f) => (s -> a) -> Optic' p f s a
+to :: (Profunctor p, Contravariant f) => (s -> a) -> p a (f a) -> p s (f s)
 to k = dimap k (contramap k)
 
 view :: Getting a s a -> s -> a
@@ -73,11 +87,7 @@ foldMapOf l f = getConst . l (Const . f)
 -------------------
 --- Setter
 
-type Setting p s t a b = p a (Identity b) -> s -> Identity t
-
-type Setting' p s a = Setting p s s a a
-
-over :: Setting (->) s t a b -> (a -> b) -> s -> t
+over :: ((a -> Identity b) -> s -> Identity t) -> (a -> b) -> s -> t
 over l f = runIdentity . l (Identity . f)
 
 -------------------
@@ -122,6 +132,10 @@ type APrism s t a b = Market a b a (Identity b) -> Market a b s (Identity t)
 
 type APrism' s a = APrism s s a a
 
+withPrism :: APrism s t a b -> ((b -> t) -> (s -> Either t a) -> r) -> r
+withPrism k f = case k (Market Identity Right) of
+  Market bt seta -> f (runIdentity . bt) (either (Left . runIdentity) Right . seta)
+
 re :: Contravariant f => AReview t b -> LensLike' f b t
 re p = to (runIdentity . unTagged . p . Tagged . Identity)
 
@@ -131,6 +145,14 @@ prism bt seta = dimap seta (either pure (fmap bt)) . right'
 
 prism' :: (b -> s) -> (s -> Maybe a) -> Prism s s a b
 prism' bs sma = prism bs (\s -> maybe (Left s) Right (sma s))
+
+below :: Traversable f => APrism' s a -> Prism' (f s) (f a)
+below k =
+  withPrism k     $ \bt seta ->
+  prism (fmap bt) $ \s ->
+  case traverse seta s of
+    Left _  -> Left s
+    Right t -> Right t
 
 -----------------
 --- Iso internals
@@ -155,8 +177,6 @@ instance Profunctor (Exchange a b) where
 
 type AnIso s t a b = Exchange a b a (Identity b) -> Exchange a b s (Identity t)
 
-type AnIso' s a = AnIso s s a a
-
 iso :: (s -> a) -> (b -> t) -> Iso s t a b
 iso sa bt = dimap sa (fmap bt)
 
@@ -168,11 +188,11 @@ withIso :: AnIso s t a b -> ((s -> a) -> (b -> t) -> r) -> r
 withIso ai k = case ai (Exchange id Identity) of
   Exchange sa bt -> k sa (runIdentity . bt)
 
-under :: AnIso s t a b -> (t -> s) -> b -> a
-under k = withIso k $ \ sa bt ts -> sa . ts . bt
+mapping :: (Functor f, Functor g) => AnIso s t a b -> Iso (f s) (g t) (f a) (g b)
+mapping k = withIso k $ \ sa bt -> iso (fmap sa) (fmap bt)
 
 -------
--- TODO: universeOf, paraOf, transformOf
+-- Plated
 
 universeOf :: Getting [a] a a -> a -> [a]
 universeOf l = go where
